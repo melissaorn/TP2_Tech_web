@@ -1,8 +1,7 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-function Navbar() {
+const Navbar = () => {
   const menu = [
     { url: "/home", label: "Home" },
     { url: "/bouquets", label: "Bouquets" },
@@ -13,16 +12,12 @@ function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-danger bg-danger">
       <div className="container-fluid">
-        <Link className="navbar-brand" to="/home">
-           flower
-        </Link>
+        <Link className="navbar-brand" to="/home">flower</Link>
         <div className="collapse navbar-collapse">
           <ul className="navbar-nav ms-auto">
-            {menu.map((item) => (
+            {menu.map(item => (
               <li key={item.url} className="nav-item">
-                <Link className="nav-link" to={item.url}>
-                  {item.label}
-                </Link>
+                <Link className="nav-link" to={item.url}>{item.label}</Link>
               </li>
             ))}
           </ul>
@@ -30,6 +25,6 @@ function Navbar() {
       </div>
     </nav>
   );
-}
+};
 
 export default Navbar;

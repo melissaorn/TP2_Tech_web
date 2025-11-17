@@ -1,30 +1,29 @@
 import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { setBouquets } from "../store/bouquetSlice";
+import { getBouquets } from "../services/bouquetService";
 
-const FetchBouquets = ({ setMesBouquets }) => {
+const FetchBouquets = () => {
+  const dispatch = useDispatch();
+
   useEffect(() => {
-    // Vérifier si les bouquets existent déjà dans le localStorage
-    const savedBouquets = localStorage.getItem("mesBouquets");
+    const fetchData = async () => {
+      try {
+        const data = await getBouquets();
+        localStorage.setItem("mesBouquets", JSON.stringify(data));
+        dispatch(setBouquets(data));
+      } catch (err) {
+        console.error("Erreur lors du polling des bouquets :", err);
+      }
+    };
 
-    if (savedBouquets) {
-      // Si oui, on les charge depuis localStorage
-      setMesBouquets(JSON.parse(savedBouquets));
-    } else {
-      // Sinon, on les récupère depuis le backend
-      fetch("http://localhost:5000/api/bouquets") // ton endpoint backend
-        .then((res) => res.json())
-        .then((data) => {
-          // Enregistrer dans le localStorage
-          localStorage.setItem("mesBouquets", JSON.stringify(data));
-          // Mettre à jour l'état du frontend
-          setMesBouquets(data);
-        })
-        .catch((error) => {
-          console.error("Erreur lors du fetch des bouquets :", error);
-        });
-    }
-  }, [setMesBouquets]);
+    fetchData(); // premier fetch au chargement
+    const interval = setInterval(fetchData, 1000); // polling toutes 3 secondes
 
-  return null; // Ce composant n'affiche rien à l'écran
+    return () => clearInterval(interval); // nettoyage à la fermeture du composant
+  }, [dispatch]);
+
+  return null;
 };
 
 export default FetchBouquets;
