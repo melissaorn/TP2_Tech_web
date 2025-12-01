@@ -6,13 +6,11 @@ const bouquetSlice = createSlice({
   name: "bouquets",
   initialState,
   reducers: {
-    setBouquets: (state, action) => { state.bouquets = action.payload; },
-    toggleLike: (state, action) => {
-      const bouquet = state.bouquets.find(b => b.id === action.payload);
-      if (bouquet) bouquet.liked = !bouquet.liked;
-    },
+    setBouquets: (state, action) => {
+      state.bouquets = action.payload;
+    }
   },
 });
 
-export const { setBouquets, toggleLike } = bouquetSlice.actions;
+export const { setBouquets } = bouquetSlice.actions;
 export default bouquetSlice.reducer;

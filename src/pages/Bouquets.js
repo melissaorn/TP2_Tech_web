@@ -1,41 +1,74 @@
-import { useSelector, useDispatch } from "react-redux";
-import Bouquet from "../components/Bouquet";
-import { toggleLike, setBouquets } from "../store/bouquetSlice";
-import { sendLike, getBouquets } from "../services/bouquetService";
+import React, { useEffect, useState } from "react";
 
-const Bouquets = () => {
-  const bouquets = useSelector(state => state.bouquets.bouquets);
-  const dispatch = useDispatch();
+export default function Bouquets() {
+  const [bouquets, setBouquets] = useState([]);
 
-  const handleLike = async (id) => {
-    // 1️⃣ Mettre à jour le like localement (Redux + localStorage)
-    dispatch(toggleLike(id));
-    const updatedBouquets = bouquets.map(b => b.id === id ? { ...b, liked: !b.liked } : b);
-    localStorage.setItem("mesBouquets", JSON.stringify(updatedBouquets));
+  // Charger les bouquets
+  useEffect(() => {
+    fetch("http://localhost:3001/bouquets")
+      .then((res) => res.json())
+      .then((data) => setBouquets(data))
+      .catch((err) => console.error(err));
+  }, []);
 
-    // 2️⃣ Envoyer le like au backend
+  // LIKE
+  const likeBouquet = async (id) => {
     try {
-      await sendLike(id);
+      const res = await fetch(`http://localhost:3001/bouquets/${id}/like`, {
+        method: "POST",
+      });
 
-      // 3️⃣ Recharger les bouquets depuis le backend pour synchroniser tous les onglets
-      const data = await getBouquets();
-      localStorage.setItem("mesBouquets", JSON.stringify(data));
-      dispatch(setBouquets(data));
-    } catch (err) {
-      console.error("Erreur lors de l'envoi du like :", err);
+      const updatedBouquet = await res.json();
+
+      // Mettre à jour localement
+      setBouquets((prev) =>
+        prev.map((b) => (b.id === id ? updatedBouquet : b))
+      );
+    } catch (e) {
+      console.error("Erreur like :", e);
     }
   };
 
   return (
-    <div className="container">
-      <h2 className="mb-4 text-center text-danger">Nos Bouquets</h2>
-      <div className="d-flex flex-wrap justify-content-center">
-        {bouquets.map(bq => (
-          <Bouquet key={bq.id} bouquet={bq} onLike={handleLike} />
+    <div>
+      <h1>Liste des Bouquets</h1>
+
+      <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+        {bouquets.map((b) => (
+          <div
+            key={b.id}
+            style={{
+              border: "1px solid #ccc",
+              padding: "10px",
+              width: "200px",
+              borderRadius: "10px",
+            }}
+          >
+            {/* ✔ NE TOUCHE PAS À L’URL, ELLE MARCHAIT AVANT */}
+            <img
+              src={`http://localhost:3001${b.image}`}
+              alt={b.nom}
+              style={{ width: "100%", borderRadius: "10px" }}
+            />
+
+            <h3>{b.nom}</h3>
+            <p>{b.descr}</p>
+
+            <button
+              onClick={() => likeBouquet(b.id)}
+              style={{
+                background: "white",
+                border: "1px solid red",
+                borderRadius: "8px",
+                padding: "5px",
+                cursor: "pointer",
+              }}
+            >
+              ❤️ {b.likes}
+            </button>
+          </div>
         ))}
       </div>
     </div>
   );
-};
-
-export default Bouquets;
+}
